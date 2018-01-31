@@ -34,51 +34,49 @@
 
 @property (nonatomic, strong) UIColor *oldColor;
 
+@property (nonatomic, assign) BOOL isIphoneX;
+
 @end
 
 @implementation ScanViewController
-
-//- (UIStatusBarStyle)preferredStatusBarStyle {
-//    return UIStatusBarStyleLightContent;
-//}
-
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
     UIView *statusBar = [[[UIApplication sharedApplication] valueForKey:@"statusBarWindow"] valueForKey:@"statusBar"];
     self.oldColor = statusBar.backgroundColor;
-    statusBar.backgroundColor = TopColor;
-    self.navigationController.navigationBar.backgroundColor = TopColor;
-    
-    //设置导航栏背景图片为一个空的image，这样就透明了
-    [self.navigationController.navigationBar setBackgroundImage:[[UIImage alloc] init] forBarMetrics:UIBarMetricsDefault];
+    statusBar.backgroundColor = [UIColor clearColor];
+    self.navigationController.navigationBar.hidden = YES;
+  
+    [self resumeAnimation];
 
+//   self.navigationController.navigationBar.backgroundColor = TopColor;
+//    //设置导航栏背景图片为一个空的image，这样就透明了
+//    [self.navigationController.navigationBar setBackgroundImage:[[UIImage alloc] init] forBarMetrics:UIBarMetricsDefault];
     //去掉透明后导航栏下边的黑边
 //    [self.navigationController.navigationBar setShadowImage:[[UIImage alloc] init]];
-    
-    [self resumeAnimation];
     
 }
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
-    //    如果不想让其他页面的导航栏变为透明 需要重置
+    //如果不想让其他页面的导航栏变为透明 需要重置
     UIView *statusBar = [[[UIApplication sharedApplication] valueForKey:@"statusBarWindow"] valueForKey:@"statusBar"];
     statusBar.backgroundColor = self.oldColor;
-    
-    [self.navigationController.navigationBar setBackgroundImage:nil forBarMetrics:UIBarMetricsDefault];
-    self.navigationController.navigationBar.backgroundColor = [UIColor whiteColor];
-    
-    
-//    [self.navigationController.navigationBar setShadowImage:nil];
+    self.navigationController.navigationBar.hidden = NO;
     
     [_captureSession stopRunning];
+
+//    [self.navigationController.navigationBar setBackgroundImage:nil forBarMetrics:UIBarMetricsDefault];
+//    self.navigationController.navigationBar.backgroundColor = [UIColor whiteColor];
+//    [self.navigationController.navigationBar setShadowImage:nil];
     
 }
 
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    self.isIphoneX = ([[UIApplication sharedApplication] statusBarFrame].size.height==20) ? NO:YES;
     
     [self setupNavigationBar];
     
@@ -99,10 +97,64 @@
 
 - (void)setupNavigationBar {
     
-    self.title = @"二维码/条码";
+//    self.title = @"二维码/条码";
     
-    self.view.backgroundColor = [UIColor whiteColor];
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"相册" style:UIBarButtonItemStylePlain target:self action:@selector(openAlbum)];
+//    self.view.backgroundColor = [UIColor whiteColor];
+//    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"相册" style:UIBarButtonItemStylePlain target:self action:@selector(openAlbum)];
+    
+    
+    //1.下边栏
+    UIView *TopBar = [[UIView alloc] init];
+    TopBar.backgroundColor = TopColor;
+    TopBar.translatesAutoresizingMaskIntoConstraints = false;
+    [self.view addSubview:TopBar];
+    
+    [self.view addConstraints:[ScanViewController GetNSLayoutCont:NSDictionaryOfVariableBindings(TopBar) format:@"H:|[TopBar]|"]];
+    [self.view addConstraints:[ScanViewController GetNSLayoutCont:NSDictionaryOfVariableBindings(TopBar) format:[NSString stringWithFormat:@"V:|[TopBar(%d)]", self.isIphoneX ? 88:64]]];
+    
+    // 取消
+    UIButton *CancleBtn=[UIButton buttonWithType:UIButtonTypeSystem];
+    CancleBtn.translatesAutoresizingMaskIntoConstraints = false;
+    [CancleBtn setTitle:@"取消" forState:UIControlStateNormal];
+    [CancleBtn setTintColor:[UIColor whiteColor]];
+//    CancleBtn.titleLabel.font = [UIFont systemFontOfSize:<#(CGFloat)#>];
+    [CancleBtn addTarget:self action:@selector(dismiss) forControlEvents:UIControlEventTouchUpInside];
+    [TopBar addSubview:CancleBtn];
+    
+    //闪光灯
+//    UIButton * flashBtn=[UIButton buttonWithType:UIButtonTypeSystem];
+//    flashBtn.translatesAutoresizingMaskIntoConstraints = false;
+//    [flashBtn setTitle:@"开闪光" forState:UIControlStateNormal];
+//    [flashBtn setTitle:@"关闪光" forState:UIControlStateSelected];
+//    [flashBtn setTintColor:[UIColor whiteColor]];
+////    flashBtn.titleLabel.font = systemFont(17);
+//    [flashBtn addTarget:self action:@selector(openFlash:) forControlEvents:UIControlEventTouchUpInside];
+//    [TopBar addSubview:flashBtn];
+    
+    //闪光灯
+    UIButton *albumBtn=[UIButton buttonWithType:UIButtonTypeSystem];
+    albumBtn.translatesAutoresizingMaskIntoConstraints = false;
+    [albumBtn setTitle:@"相册" forState:UIControlStateNormal];
+    [albumBtn setTintColor:[UIColor whiteColor]];
+    //    flashBtn.titleLabel.font = systemFont(17);
+    [albumBtn addTarget:self action:@selector(openAlbum) forControlEvents:UIControlEventTouchUpInside];
+    [TopBar addSubview:albumBtn];
+    
+    [TopBar addConstraints:[ScanViewController GetNSLayoutCont:NSDictionaryOfVariableBindings(CancleBtn) format:@"H:|-20-[CancleBtn(60)]"]];
+    [TopBar addConstraints:[ScanViewController GetNSLayoutCont:NSDictionaryOfVariableBindings(albumBtn) format:@"H:[albumBtn(60)]-20-|"]];
+    [TopBar addConstraints:[ScanViewController GetNSLayoutCont:NSDictionaryOfVariableBindings(CancleBtn) format:[NSString stringWithFormat:@"V:|-%d-[CancleBtn(44)]", self.isIphoneX ? 44:20]]];
+    [TopBar addConstraints:[ScanViewController GetNSLayoutCont:NSDictionaryOfVariableBindings(albumBtn) format:[NSString stringWithFormat:@"V:|-%d-[albumBtn(44)]", self.isIphoneX ? 44:20]]];
+    
+    UILabel *titleLab = [[UILabel alloc] init];
+    titleLab.translatesAutoresizingMaskIntoConstraints = false;
+    titleLab.text = @"二维码/条码";
+    titleLab.textColor = [UIColor whiteColor];
+    [TopBar addSubview:titleLab];
+    [TopBar addConstraints:[ScanViewController GetNSLayoutCont:NSDictionaryOfVariableBindings(titleLab) format:@"H:[titleLab]"]];
+    [TopBar addConstraints:[ScanViewController GetNSLayoutCont:NSDictionaryOfVariableBindings(titleLab) format:[NSString stringWithFormat:@"V:|-%d-[titleLab(44)]", self.isIphoneX ? 44:20]]];
+    [TopBar addConstraint:[NSLayoutConstraint constraintWithItem:titleLab attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:TopBar attribute:NSLayoutAttributeCenterX multiplier:1.0 constant:0]];
+    
+    
 }
 
 #pragma mark - 初始化提示语
