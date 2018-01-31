@@ -1,5 +1,5 @@
 //
-//  ViewController.h
+//  ScanViewController.h
 //  ScanQRCode_iOS
 //
 //  Created by 王增战 on 2018/1/9.
@@ -8,8 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ViewController : UIViewController
-
+@interface ScanViewController : UIViewController
 
 @end
-
