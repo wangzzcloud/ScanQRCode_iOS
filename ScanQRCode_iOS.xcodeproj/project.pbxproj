@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		821192782022FDBC00564CA2 /* flash_light_open@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 821192762022FDBC00564CA2 /* flash_light_open@3x.png */; };
+		821192792022FDBC00564CA2 /* flash_light_open@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 821192772022FDBC00564CA2 /* flash_light_open@2x.png */; };
 		8230556B2004B9A60071DFF2 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 8230556A2004B9A60071DFF2 /* AppDelegate.m */; };
 		823055732004B9A60071DFF2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 823055722004B9A60071DFF2 /* Assets.xcassets */; };
 		823055762004B9A60071DFF2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 823055742004B9A60071DFF2 /* LaunchScreen.storyboard */; };
@@ -22,6 +24,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		821192762022FDBC00564CA2 /* flash_light_open@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "flash_light_open@3x.png"; sourceTree = "<group>"; };
+		821192772022FDBC00564CA2 /* flash_light_open@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "flash_light_open@2x.png"; sourceTree = "<group>"; };
 		823055662004B9A60071DFF2 /* ScanQRCode_iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScanQRCode_iOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		823055692004B9A60071DFF2 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		8230556A2004B9A60071DFF2 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -91,6 +95,8 @@
 		8262334520205E3C00C0736F /* pictures */ = {
 			isa = PBXGroup;
 			children = (
+				821192762022FDBC00564CA2 /* flash_light_open@3x.png */,
+				821192772022FDBC00564CA2 /* flash_light_open@2x.png */,
 				826233482020602900C0736F /* scan_1@2x.png */,
 				826233472020602900C0736F /* scan_2@2x.png */,
 				826233462020602900C0736F /* scan_3@2x.png */,
@@ -167,7 +173,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				8262334C2020602A00C0736F /* scan_2@2x.png in Resources */,
+				821192782022FDBC00564CA2 /* flash_light_open@3x.png in Resources */,
 				823055762004B9A60071DFF2 /* LaunchScreen.storyboard in Resources */,
+				821192792022FDBC00564CA2 /* flash_light_open@2x.png in Resources */,
 				8262334B2020602A00C0736F /* scan_3@2x.png in Resources */,
 				823055732004B9A60071DFF2 /* Assets.xcassets in Resources */,
 				8262334F2020602A00C0736F /* scan_net@2x.png in Resources */,

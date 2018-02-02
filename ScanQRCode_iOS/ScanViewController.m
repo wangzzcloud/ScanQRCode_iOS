@@ -20,7 +20,9 @@
 
 #define TopColor [UIColor colorWithRed:0 green:0 blue:0 alpha:0.6]
 
-@interface ScanViewController ()<AVCaptureMetadataOutputObjectsDelegate, UIAlertViewDelegate>
+#define TextSize 13
+
+@interface ScanViewController ()<AVCaptureMetadataOutputObjectsDelegate, UIAlertViewDelegate, AVCaptureVideoDataOutputSampleBufferDelegate>
 
 @property (nonatomic, assign) CGFloat scanWindowW;
 @property (nonatomic, strong) UIView *scanWindow;
@@ -33,6 +35,8 @@
 @property (nonatomic, strong) AVCaptureVideoPreviewLayer *videoPreviewLayer;
 
 @property (nonatomic, strong) UIColor *oldColor;
+
+@property (nonatomic, strong) UIView *tipsBgView;
 
 @property (nonatomic, assign) BOOL isIphoneX;
 
@@ -66,6 +70,14 @@
     
     [_captureSession stopRunning];
 
+    //熄灭闪关灯
+    AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    [device lockForConfiguration:nil];
+    [device setTorchMode:AVCaptureTorchModeOff];
+    [device unlockForConfiguration];
+
+    
+    
 //    [self.navigationController.navigationBar setBackgroundImage:nil forBarMetrics:UIBarMetricsDefault];
 //    self.navigationController.navigationBar.backgroundColor = [UIColor whiteColor];
 //    [self.navigationController.navigationBar setShadowImage:nil];
@@ -87,7 +99,7 @@
     
     [self setupScanWindow];
     
-    [self beginScanAnimation];
+//    [self beginScanAnimation];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(resumeAnimation) name:@"EnterForeground" object:nil];
     
@@ -98,11 +110,9 @@
 - (void)setupNavigationBar {
     
 //    self.title = @"二维码/条码";
-    
-//    self.view.backgroundColor = [UIColor whiteColor];
+    self.view.backgroundColor = [UIColor whiteColor];
 //    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"相册" style:UIBarButtonItemStylePlain target:self action:@selector(openAlbum)];
-    
-    
+
     //1.下边栏
     UIView *TopBar = [[UIView alloc] init];
     TopBar.backgroundColor = TopColor;
@@ -168,18 +178,19 @@
     _tipLabel.layer.masksToBounds = YES;
     _tipLabel.textAlignment = NSTextAlignmentCenter;
     _tipLabel.lineBreakMode = NSLineBreakByWordWrapping;
-    _tipLabel.font = [UIFont systemFontOfSize:12];
+    _tipLabel.font = [UIFont systemFontOfSize:TextSize];
     _tipLabel.backgroundColor = [UIColor whiteColor];
     _tipLabel.alpha = 0.5;
     [self.view addSubview:_tipLabel];
     
-    CGFloat width = [_tipLabel.text sizeWithAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:12]}].width;
+    CGFloat width = [_tipLabel.text sizeWithAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:TextSize]}].width;
     [self.view addConstraints:[ScanViewController GetNSLayoutCont:NSDictionaryOfVariableBindings(_tipLabel) format:[NSString stringWithFormat:@"H:[_tipLabel(%f)]", width+16]]];
     [self.view addConstraints:[ScanViewController GetNSLayoutCont:NSDictionaryOfVariableBindings(_tipLabel) format:@"V:[_tipLabel(25)]-60-|"]];
     [self.view addConstraint:[NSLayoutConstraint constraintWithItem:_tipLabel attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeCenterX multiplier:1.0 constant:0]];
     
 }
 
+#pragma mark - 初始化扫描区域
 
 - (void)setupScanWindow {
     _scanWindow = [[UIView alloc] init];
@@ -219,7 +230,54 @@
     
     _scanNetImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"scan_net"]];
     
+    [self setupShowTipForLight];
 }
+
+#pragma mark - 初始化手电筒的提示，在较暗环境下就提示打开，其他环境下关闭
+- (void)setupShowTipForLight {
+    
+    _tipsBgView = [[UIView alloc] init];
+    _tipsBgView.translatesAutoresizingMaskIntoConstraints = false;
+    _tipsBgView.backgroundColor = [UIColor clearColor];
+    [_scanWindow addSubview:_tipsBgView];
+    
+    [_scanWindow addConstraints:[ScanViewController GetNSLayoutCont:NSDictionaryOfVariableBindings(_tipsBgView) format:@"H:[_tipsBgView(80)]"]];
+    [_scanWindow addConstraints:[ScanViewController GetNSLayoutCont:NSDictionaryOfVariableBindings(_tipsBgView) format:@"V:[_tipsBgView(80)]-10-|"]];
+    [_scanWindow addConstraint:[NSLayoutConstraint constraintWithItem:_tipsBgView attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:_scanWindow attribute:NSLayoutAttributeCenterX multiplier:1.0 constant:0]];
+    
+    UIImageView *lightImgView = [[UIImageView alloc] init];
+    lightImgView.translatesAutoresizingMaskIntoConstraints = false;
+    lightImgView.image = [UIImage imageNamed:@"flash_light_open"];
+    [_scanWindow addSubview:lightImgView];
+    
+    UILabel *tipTextLab = [[UILabel alloc] init];
+    tipTextLab.translatesAutoresizingMaskIntoConstraints = false;
+    tipTextLab.text = @"轻击照亮";
+    tipTextLab.textColor = [UIColor whiteColor];
+    tipTextLab.font = [UIFont systemFontOfSize:TextSize];
+    tipTextLab.textAlignment = NSTextAlignmentCenter;
+    [_scanWindow addSubview:tipTextLab];
+    
+    [_scanWindow addConstraints:[ScanViewController GetNSLayoutCont:NSDictionaryOfVariableBindings(lightImgView) format:@"H:[lightImgView(20)]"]];
+    [_scanWindow addConstraints:[ScanViewController GetNSLayoutCont:NSDictionaryOfVariableBindings(tipTextLab) format:@"H:|[tipTextLab]|"]];
+    [_scanWindow addConstraints:[ScanViewController GetNSLayoutCont:NSDictionaryOfVariableBindings(lightImgView, tipTextLab) format:@"V:[lightImgView(20)][tipTextLab(26)]-16-|"]];
+    [_scanWindow addConstraint:[NSLayoutConstraint constraintWithItem:lightImgView attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:_scanWindow attribute:NSLayoutAttributeCenterX multiplier:1.0 constant:0]];
+    
+    
+    _tipsBgView.userInteractionEnabled = YES;
+    [_tipsBgView addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(openLightTorch)]];
+    _tipsBgView.hidden = YES;
+    
+}
+
+- (void)openLightTorch {
+    
+    AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    [device lockForConfiguration:nil];
+    [device setTorchMode:AVCaptureTorchModeOn];
+    [device unlockForConfiguration];
+}
+
 
 #pragma mark - 开始扫描动画
 
@@ -236,12 +294,20 @@
     [deviceOutput setMetadataObjectsDelegate:self queue:dispatch_get_main_queue()];
     deviceOutput.rectOfInterest = self.view.bounds;
     
+    AVCaptureVideoDataOutput *videoDataOutput = [[AVCaptureVideoDataOutput alloc] init];
+    [videoDataOutput setSampleBufferDelegate:self queue:dispatch_get_main_queue()];
     
     
     _captureSession = [[AVCaptureSession alloc] init];
     [_captureSession setSessionPreset:AVCaptureSessionPresetHigh];
     [_captureSession addInput:deviceInput];
-    [_captureSession addOutput:deviceOutput];
+    if ([_captureSession canAddOutput:deviceOutput]) {
+        [_captureSession addOutput:deviceOutput];
+    }
+
+    if ([_captureSession canAddOutput:videoDataOutput]) {
+        [_captureSession addOutput:videoDataOutput];
+    }
     
     deviceOutput.metadataObjectTypes = @[AVMetadataObjectTypeQRCode, AVMetadataObjectTypeEAN13Code, AVMetadataObjectTypeEAN8Code, AVMetadataObjectTypeCode128Code];
 
@@ -314,7 +380,7 @@
 
 #pragma mark - AVCaptureMetadataOutputObjectsDelegate
 - (void)captureOutput:(AVCaptureOutput *)output didOutputMetadataObjects:(NSArray<__kindof AVMetadataObject *> *)metadataObjects fromConnection:(AVCaptureConnection *)connection {
-    
+
     if (metadataObjects.count > 0) {
         [_captureSession stopRunning];
         
@@ -327,6 +393,40 @@
     }
     
     
+}
+
+#pragma mark - AVCaptureVideoDataOutputSampleBufferDelegate
+- (void)captureOutput:(AVCaptureOutput *)output didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
+    
+    CFDictionaryRef metadataDict = CMCopyDictionaryOfAttachments(NULL, sampleBuffer, kCMAttachmentMode_ShouldPropagate);
+    NSDictionary *metadata = [[NSMutableDictionary alloc] initWithDictionary:(__bridge NSDictionary *)metadataDict];
+    CFRelease(metadataDict);
+    
+    NSDictionary *exifMetadata = [[metadata objectForKey:(NSString *)kCGImagePropertyExifDictionary] mutableCopy];
+    float brightnessValue = [[exifMetadata objectForKey:(NSString *)kCGImagePropertyExifBrightnessValue] floatValue];
+    NSLog(@"%f", brightnessValue);
+    
+    
+    AVCaptureDevice *myLightDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    /** 判断是否有闪关灯 */
+    BOOL result = [myLightDevice hasTorch];
+    if (brightnessValue<0 && result) {
+        NSLog(@"需要开启闪光灯");
+        if (self.tipsBgView.hidden == NO) {
+            return;
+        }
+        self.tipsBgView.hidden = NO;
+        
+    } else {
+        NSLog(@"不需要开启闪光灯");
+        if (self.tipsBgView.hidden == YES) {
+            return;
+        }
+        self.tipsBgView.hidden = YES;
+    }
+        
+        
+
 }
 
 #pragma mark - alert delegate
