@@ -22,7 +22,7 @@
 
 #define TextSize 13
 
-@interface ScanViewController ()<AVCaptureMetadataOutputObjectsDelegate, UIAlertViewDelegate, AVCaptureVideoDataOutputSampleBufferDelegate>
+@interface ScanViewController ()<AVCaptureMetadataOutputObjectsDelegate, UIAlertViewDelegate, AVCaptureVideoDataOutputSampleBufferDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate>
 
 /** 是否是iPhone X */
 @property (nonatomic, assign) BOOL isIphoneX;
@@ -50,6 +50,11 @@
 @property (nonatomic, strong) AVCaptureSession *captureSession;
 /** 摄像头捕捉内容显示图层 */
 @property (nonatomic, strong) AVCaptureVideoPreviewLayer *videoPreviewLayer;
+
+
+@property (nonatomic) UIImagePickerController *imagePicker;
+
+
 
 @end
 
@@ -140,7 +145,6 @@
     CancleBtn.translatesAutoresizingMaskIntoConstraints = false;
     [CancleBtn setTitle:@"取消" forState:UIControlStateNormal];
     [CancleBtn setTintColor:[UIColor whiteColor]];
-//    CancleBtn.titleLabel.font = [UIFont systemFontOfSize:<#(CGFloat)#>];
     [CancleBtn addTarget:self action:@selector(dismiss) forControlEvents:UIControlEventTouchUpInside];
     [TopBar addSubview:CancleBtn];
     
@@ -149,7 +153,6 @@
     albumBtn.translatesAutoresizingMaskIntoConstraints = false;
     [albumBtn setTitle:@"相册" forState:UIControlStateNormal];
     [albumBtn setTintColor:[UIColor whiteColor]];
-    //    flashBtn.titleLabel.font = systemFont(17);
     [albumBtn addTarget:self action:@selector(openAlbum) forControlEvents:UIControlEventTouchUpInside];
     [TopBar addSubview:albumBtn];
     
@@ -432,8 +435,6 @@
     float brightnessValue = [[exifMetadata objectForKey:(NSString *)kCGImagePropertyExifBrightnessValue] floatValue];
     NSLog(@"%f", brightnessValue);
     
-    
-//    AVCaptureDevice *myLightDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
     /** 判断是否有闪关灯 */
     BOOL result = [self.captureDevice hasTorch];
     if (brightnessValue<0 && result) {
@@ -454,8 +455,6 @@
         self.tipsBgView.hidden = YES;
         NSLog(@"不需要开启闪光灯");
     }
-        
-        
 
 }
 
@@ -476,13 +475,44 @@
     [self.navigationController popViewControllerAnimated:YES];
 }
 
+#pragma mark - 识别相册中的二维码或条码
 
+- (UIImagePickerController *)imagePicker {
+    
+    if (nil == _imagePicker) {
+        _imagePicker = [[UIImagePickerController alloc] init];
+        _imagePicker.modalPresentationStyle = UIModalPresentationFullScreen;
+        _imagePicker.delegate = self;
+    }
+    return _imagePicker;
+}
+
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info {
+    
+    UIImage *selectImage = info[UIImagePickerControllerOriginalImage];
+    NSLog(@"大哥选择的图片是%@", selectImage);
+    
+    [picker dismissViewControllerAnimated:YES completion:nil];
+    
+}
 
 /** 从本地相册中获取目标 */
 - (void)openAlbum {
     
+    if (!IS_PAD) {
+        
+        self.imagePicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+//        self.imagePicker.mediaTypes = @[(NSString *)kUTTypeImage];
+        [self presentViewController:self.imagePicker animated:YES completion:nil];
+        
+    } else {
+        
+    }
     
 }
+
+
+
 
 
 
@@ -493,12 +523,12 @@
 }
 #pragma mark - 采用VFL布局
 
-+(NSArray<NSLayoutConstraint*> *) GetNSLayoutCont:(NSDictionary *) views  format:(NSString*)format
++(NSArray<NSLayoutConstraint*> *) GetNSLayoutCont:(NSDictionary *) views  format:(NSString *)format
 {
-    NSArray<NSLayoutConstraint*>* data=[NSLayoutConstraint constraintsWithVisualFormat:format
-                                                                               options:0
-                                                                               metrics:nil
-                                                                                 views:views];
+    NSArray<NSLayoutConstraint *> *data=[NSLayoutConstraint constraintsWithVisualFormat:format
+                                                                                options:0
+                                                                                metrics:nil
+                                                                                  views:views];
     return data;
 }
 
