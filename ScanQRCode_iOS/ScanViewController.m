@@ -18,9 +18,9 @@
 //iPhone
 #define IS_IPHONE (UI_USER_INTERFACE_IDIOM()== UIUserInterfaceIdiomPhone)
 
-#define TopColor [UIColor colorWithRed:0 green:0 blue:0 alpha:0.6]
+#define kTopColor [UIColor colorWithRed:0 green:0 blue:0 alpha:0.6]
 
-#define TextSize 13
+#define kTextSize 13
 
 @interface ScanViewController ()<AVCaptureMetadataOutputObjectsDelegate, UIAlertViewDelegate, AVCaptureVideoDataOutputSampleBufferDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate>
 
@@ -133,7 +133,7 @@
     
     //1.下边栏
     UIView *TopBar = [[UIView alloc] init];
-    TopBar.backgroundColor = TopColor;
+    TopBar.backgroundColor = kTopColor;
     TopBar.translatesAutoresizingMaskIntoConstraints = false;
     [self.view addSubview:TopBar];
     
@@ -184,12 +184,12 @@
     _tipLabel.layer.masksToBounds = YES;
     _tipLabel.textAlignment = NSTextAlignmentCenter;
     _tipLabel.lineBreakMode = NSLineBreakByWordWrapping;
-    _tipLabel.font = [UIFont systemFontOfSize:TextSize];
+    _tipLabel.font = [UIFont systemFontOfSize:kTextSize];
     _tipLabel.backgroundColor = [UIColor whiteColor];
     _tipLabel.alpha = 0.5;
     [self.view addSubview:_tipLabel];
     
-    CGFloat width = [_tipLabel.text sizeWithAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:TextSize]}].width;
+    CGFloat width = [_tipLabel.text sizeWithAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:kTextSize]}].width;
     [self.view addConstraints:[ScanViewController GetNSLayoutCont:NSDictionaryOfVariableBindings(_tipLabel) format:[NSString stringWithFormat:@"H:[_tipLabel(%f)]", width+16]]];
     [self.view addConstraints:[ScanViewController GetNSLayoutCont:NSDictionaryOfVariableBindings(_tipLabel) format:@"V:[_tipLabel(25)]-60-|"]];
     [self.view addConstraint:[NSLayoutConstraint constraintWithItem:_tipLabel attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeCenterX multiplier:1.0 constant:0]];
@@ -259,7 +259,7 @@
     _tipTextLab.translatesAutoresizingMaskIntoConstraints = false;
     _tipTextLab.text = @"轻击照亮";
     _tipTextLab.textColor = [UIColor whiteColor];
-    _tipTextLab.font = [UIFont systemFontOfSize:TextSize];
+    _tipTextLab.font = [UIFont systemFontOfSize:kTextSize];
     _tipTextLab.textAlignment = NSTextAlignmentCenter;
     [_tipsBgView addSubview:_tipTextLab];
     
